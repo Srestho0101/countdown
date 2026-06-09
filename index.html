@@ -1,733 +1,1394 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SSC Result Countdown — আর কত দিন? 💀</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=VT323&display=swap');
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SSC Result আসছে — ৯৯% প্রস্তুত, ১% আশা</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&family=VT323&family=Tiro+Bangla&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-    :root {
-      --blood: #8b0000;
-      --dark-blood: #4a0000;
-      --rot: #2a1a00;
-      --bone: #e8dcc8;
-      --pale: #c8bfae;
-      --ghost: #a0c8a0;
-      --mold: #3a5a3a;
-      --flicker: #ff6600;
-    }
+:root {
+  --ink: #1a1008;
+  --red-ink: #c0180c;
+  --blue-ink: #1a2e6e;
+  --paper: #f0e8d0;
+  --paper-dark: #ddd3b0;
+  --paper-shadow: #b8a87a;
+  --ruled: rgba(100,130,180,0.25);
+  --margin: rgba(220,60,40,0.35);
+  --worn: #8a7a58;
+  --bg: #1a1208;
+}
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
-    html, body {
-      min-height: 100%;
-      background: #080408;
-      color: var(--bone);
-      font-family: 'Special Elite', cursive;
-      overflow-x: hidden;
-    }
+body {
+  background: var(--bg);
+  font-family: 'Special Elite', serif;
+  overflow-x: hidden;
+  cursor: default;
+  min-height: 100vh;
+}
 
-    /* Animated noise texture */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
-      background-size: 150px;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.4;
-    }
+/* ===================== CANVAS BACKGROUND ===================== */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
 
-    /* Vignette */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at center, transparent 40%, #000 100%);
-      pointer-events: none;
-      z-index: 2;
-    }
+/* ===================== MAIN PAPER SHEET ===================== */
+.paper-sheet {
+  position: relative;
+  z-index: 10;
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--paper);
+  min-height: 100vh;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.6), 8px 0 40px rgba(0,0,0,0.6), 0 0 80px rgba(0,0,0,0.5);
+  padding-bottom: 4rem;
+  /* subtle paper texture via repeating lines */
+  background-image:
+    repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      var(--ruled) 31px,
+      var(--ruled) 32px
+    ),
+    linear-gradient(90deg, transparent 58px, var(--margin) 58px, var(--margin) 60px, transparent 60px);
+  background-attachment: local;
+}
 
-    .page-wrapper {
-      position: relative;
-      z-index: 10;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem 3rem;
-    }
+/* torn top edge */
+.paper-sheet::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 28px;
+  background: var(--bg);
+  clip-path: polygon(
+    0% 100%, 2% 20%, 4% 80%, 6% 10%, 8% 70%, 10% 0%, 12% 60%,
+    14% 90%, 16% 30%, 18% 85%, 20% 15%, 22% 75%, 24% 40%, 26% 95%,
+    28% 20%, 30% 65%, 32% 5%, 34% 80%, 36% 45%, 38% 90%, 40% 25%,
+    42% 70%, 44% 10%, 46% 55%, 48% 85%, 50% 30%, 52% 75%, 54% 15%,
+    56% 60%, 58% 95%, 60% 35%, 62% 80%, 64% 20%, 66% 65%, 68% 5%,
+    70% 50%, 72% 90%, 74% 30%, 76% 75%, 78% 15%, 80% 60%, 82% 0%,
+    84% 55%, 86% 85%, 88% 25%, 90% 70%, 92% 10%, 94% 50%, 96% 88%,
+    98% 20%, 100% 70%, 100% 100%
+  );
+  position: relative;
+  z-index: 2;
+}
 
-    /* --- Dripping blood header --- */
-    .drip-bar {
-      width: 100%;
-      height: 60px;
-      position: relative;
-      margin-bottom: 1rem;
-      overflow: visible;
-    }
-    .drip-bar svg {
-      width: 100%;
-      height: 60px;
-      display: block;
-      overflow: visible;
-    }
+/* ===================== HEADER ZONE ===================== */
+.header-zone {
+  padding: 0.5rem 1.5rem 0 72px;
+  position: relative;
+}
 
-    /* --- Eye that watches --- */
-    .eye-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 2rem;
-      margin: 0.5rem 0 1.5rem;
-    }
-    .eye {
-      width: 60px;
-      height: 30px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .eye svg { width: 100%; height: 100%; }
+.header-stamp {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.5rem;
+  width: 90px;
+  height: 90px;
+  border: 3px solid var(--red-ink);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(12deg);
+  opacity: 0.85;
+  gap: 0;
+}
+.header-stamp .stamp-top {
+  font-family: 'VT323', monospace;
+  font-size: 0.65rem;
+  color: var(--red-ink);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.header-stamp .stamp-big {
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  color: var(--red-ink);
+  line-height: 1;
+  font-weight: bold;
+}
+.header-stamp::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--red-ink);
+  border-radius: 50%;
+  opacity: 0.4;
+}
 
-    /* --- Title --- */
-    .horror-title {
-      font-family: 'Creepster', cursive;
-      font-size: clamp(2.4rem, 8vw, 5.5rem);
-      color: var(--blood);
-      text-align: center;
-      line-height: 1.1;
-      letter-spacing: 2px;
-      text-shadow:
-        0 0 20px rgba(139,0,0,0.8),
-        0 0 40px rgba(139,0,0,0.4),
-        3px 3px 0 #000;
-      animation: flicker-title 4s infinite;
-    }
-    @keyframes flicker-title {
-      0%,93%,97%,100% { opacity: 1; }
-      94%,96% { opacity: 0.4; }
-    }
+.exam-header-line {
+  font-family: 'VT323', monospace;
+  font-size: 0.75rem;
+  color: #888;
+  letter-spacing: 2px;
+  padding-top: 0.6rem;
+  border-bottom: 1px solid var(--paper-shadow);
+  padding-bottom: 0.2rem;
+  display: flex;
+  justify-content: space-between;
+}
 
-    .subtitle {
-      font-family: 'VT323', monospace;
-      font-size: clamp(1rem, 3vw, 1.4rem);
-      color: var(--ghost);
-      text-align: center;
-      margin-top: 0.4rem;
-      letter-spacing: 3px;
-      opacity: 0.8;
-    }
+/* ===================== TITLE SECTION ===================== */
+.title-zone {
+  padding: 0.8rem 1.5rem 0 72px;
+  position: relative;
+}
 
-    /* --- Scary quote box --- */
-    .quote-box {
-      border: 1px solid var(--blood);
-      border-left: 4px solid var(--blood);
-      background: rgba(139,0,0,0.06);
-      padding: 0.75rem 1.2rem;
-      margin: 1.5rem 0;
-      max-width: 600px;
-      width: 100%;
-      font-size: 1rem;
-      color: var(--pale);
-      font-style: italic;
-      text-align: center;
-      position: relative;
-    }
-    .quote-box::before {
-      content: '"';
-      font-family: 'Creepster', cursive;
-      font-size: 4rem;
-      color: var(--blood);
-      position: absolute;
-      top: -1.5rem;
-      left: 0.5rem;
-      opacity: 0.4;
-    }
-    .quote-author {
-      display: block;
-      margin-top: 0.4rem;
-      font-size: 0.8rem;
-      color: #777;
-      font-style: normal;
-      letter-spacing: 1px;
-    }
+.subject-label {
+  font-family: 'Caveat', cursive;
+  font-size: 0.85rem;
+  color: var(--blue-ink);
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
 
-    /* --- Countdown grid --- */
-    .countdown-grid {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin: 1.5rem 0;
-    }
-    .count-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #100008;
-      border: 1px solid #3a0010;
-      border-top: 3px solid var(--blood);
-      padding: 1.2rem 1.5rem 0.8rem;
-      min-width: 100px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s;
-    }
-    .count-block::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--blood), transparent);
-      opacity: 0.6;
-    }
-    .count-block:hover { transform: translateY(-3px); }
-    .count-number {
-      font-family: 'VT323', monospace;
-      font-size: clamp(3.5rem, 10vw, 5.5rem);
-      color: var(--bone);
-      line-height: 1;
-      text-shadow: 0 0 15px rgba(139,0,0,0.9), 0 0 30px rgba(139,0,0,0.4);
-      animation: pulse-count 2s ease-in-out infinite;
-    }
-    @keyframes pulse-count {
-      0%,100% { text-shadow: 0 0 10px rgba(139,0,0,0.8), 0 0 25px rgba(139,0,0,0.3); }
-      50% { text-shadow: 0 0 20px rgba(139,0,0,1), 0 0 40px rgba(139,0,0,0.6); }
-    }
-    .count-label {
-      font-family: 'Creepster', cursive;
-      font-size: 0.85rem;
-      color: var(--blood);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-top: 0.2rem;
-    }
-    /* Skull decoration per block */
-    .count-block::after {
-      content: '☠';
-      position: absolute;
-      bottom: 2px;
-      right: 4px;
-      font-size: 10px;
-      opacity: 0.2;
-      color: var(--blood);
-    }
+.main-title {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  position: relative;
+}
+.main-title .crossed {
+  position: relative;
+  display: inline-block;
+  color: var(--worn);
+}
+.main-title .crossed::after {
+  content: '';
+  position: absolute;
+  left: -2px; right: -2px;
+  top: 50%;
+  height: 3px;
+  background: var(--red-ink);
+  transform: rotate(-2deg);
+}
+.main-title .fear-word {
+  color: var(--red-ink);
+  font-size: 1.15em;
+  display: inline-block;
+  transform: rotate(-1.5deg);
+  text-shadow: 2px 2px 0 rgba(192,24,12,0.2);
+}
 
-    /* --- Result date display --- */
-    .result-date-box {
-      font-family: 'VT323', monospace;
-      font-size: clamp(1.2rem, 4vw, 1.7rem);
-      color: var(--ghost);
-      text-align: center;
-      letter-spacing: 2px;
-      border: 1px dashed #2a4a2a;
-      padding: 0.6rem 2rem;
-      margin: 0.5rem 0 1.5rem;
-    }
-    .result-date-box span {
-      color: #ff4444;
-      animation: blink 1.2s steps(1) infinite;
-    }
-    @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+.subtitle-scrawl {
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  color: var(--blue-ink);
+  margin-top: 0.2rem;
+  opacity: 0.8;
+  transform: rotate(-0.5deg);
+  display: block;
+}
 
-    /* --- Panic meter --- */
-    .panic-section {
-      width: 100%;
-      max-width: 480px;
-      margin: 0.5rem 0 1.5rem;
-    }
-    .panic-label {
-      font-family: 'Creepster', cursive;
-      font-size: 1.1rem;
-      color: var(--blood);
-      letter-spacing: 2px;
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-    .panic-bar-bg {
-      background: #0d000a;
-      border: 1px solid #3a0010;
-      height: 28px;
-      position: relative;
-      overflow: hidden;
-    }
-    .panic-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #3a0000, #8b0000, #ff2200);
-      transition: width 1s ease;
-      position: relative;
-    }
-    .panic-bar-fill::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 8px,
-        rgba(0,0,0,0.3) 8px,
-        rgba(0,0,0,0.3) 9px
-      );
-    }
-    .panic-text {
-      font-family: 'VT323', monospace;
-      font-size: 0.85rem;
-      color: var(--pale);
-      text-align: center;
-      margin-top: 0.4rem;
-      opacity: 0.8;
-      letter-spacing: 1px;
-    }
+/* margin scribbles */
+.margin-note {
+  position: absolute;
+  left: 4px;
+  font-family: 'Caveat', cursive;
+  font-size: 0.75rem;
+  color: var(--red-ink);
+  opacity: 0.7;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  line-height: 1;
+  pointer-events: none;
+}
 
-    /* --- Creepy messages scrolling area --- */
-    .messages-container {
-      width: 100%;
-      max-width: 560px;
-      border: 1px solid #2a0010;
-      background: #060206;
-      padding: 0.8rem 1rem;
-      font-family: 'VT323', monospace;
-      font-size: 1rem;
-      color: #7a7a6a;
-      letter-spacing: 1px;
-      min-height: 2.5rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .messages-container::before {
-      content: '> ';
-      color: var(--blood);
-      opacity: 0.7;
-    }
-    #scroll-msg {
-      display: inline;
-      animation: msg-fade 0.5s ease;
-    }
-    @keyframes msg-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* ===================== BISE LOADING BAR ===================== */
+.bise-section {
+  margin: 1.2rem 1.5rem 0 72px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--paper-shadow);
+  background: rgba(255,255,255,0.5);
+  position: relative;
+}
+.bise-section::before {
+  content: 'BISE Official Portal';
+  position: absolute;
+  top: -0.55rem;
+  left: 0.7rem;
+  background: var(--paper);
+  padding: 0 0.3rem;
+  font-family: 'VT323', monospace;
+  font-size: 0.75rem;
+  color: var(--blue-ink);
+  letter-spacing: 1px;
+}
+.bise-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bise-bar-label {
+  font-family: 'VT323', monospace;
+  font-size: 0.8rem;
+  color: #555;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bise-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--paper-dark);
+  border: 1px solid var(--paper-shadow);
+  overflow: hidden;
+  position: relative;
+}
+.bise-bar-fill {
+  height: 100%;
+  width: 99%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--blue-ink) 0px,
+    var(--blue-ink) 6px,
+    transparent 6px,
+    transparent 9px
+  );
+  animation: bise-stall 3s ease-in-out infinite;
+}
+@keyframes bise-stall {
+  0%,60% { width: 99%; opacity:1; }
+  70% { width: 99.3%; opacity:0.6; }
+  80% { width: 99%; opacity:1; }
+  90% { width: 99.5%; opacity:0.4; }
+  100% { width: 99%; opacity:1; }
+}
+.bise-status {
+  font-family: 'VT323', monospace;
+  font-size: 0.7rem;
+  color: var(--red-ink);
+  margin-top: 0.25rem;
+}
+#bise-status-text { animation: blink-slow 1.8s steps(1) infinite; }
+@keyframes blink-slow { 0%,55% {opacity:1;} 56%,100%{opacity:0;} }
 
-    /* --- Footer --- */
-    .footer-text {
-      margin-top: 2.5rem;
-      font-family: 'VT323', monospace;
-      font-size: 0.9rem;
-      color: #333;
-      text-align: center;
-      letter-spacing: 2px;
-    }
-    .footer-text a { color: #550000; text-decoration: none; }
+/* ===================== COUNTDOWN ===================== */
+.countdown-zone {
+  margin: 1.2rem 1.5rem 0 72px;
+  position: relative;
+}
 
-    /* --- Floating skulls bg --- */
-    .floating-skull {
-      position: fixed;
-      font-size: 1.5rem;
-      opacity: 0;
-      animation: float-up linear infinite;
-      pointer-events: none;
-      z-index: 3;
-    }
-    @keyframes float-up {
-      0% { opacity: 0; transform: translateY(0) rotate(0deg); }
-      10% { opacity: 0.12; }
-      80% { opacity: 0.07; }
-      100% { opacity: 0; transform: translateY(-100vh) rotate(360deg); }
-    }
+.countdown-label-row {
+  font-family: 'Caveat', cursive;
+  font-size: 0.9rem;
+  color: var(--worn);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.countdown-label-row::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--paper-shadow);
+}
 
-    /* --- Heartbeat line --- */
-    .heartbeat-wrap {
-      width: 100%;
-      max-width: 480px;
-      height: 50px;
-      margin: 0.5rem 0;
-      overflow: hidden;
-    }
-    .heartbeat-wrap svg { width: 100%; height: 100%; }
+.countdown-grid {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
 
-    /* --- Share button --- */
-    .share-btn {
-      margin-top: 1rem;
-      background: transparent;
-      border: 1px solid var(--blood);
-      color: var(--blood);
-      font-family: 'Creepster', cursive;
-      font-size: 1.2rem;
-      letter-spacing: 2px;
-      padding: 0.6rem 2rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .share-btn:hover {
-      background: var(--blood);
-      color: var(--bone);
-      box-shadow: 0 0 20px rgba(139,0,0,0.5);
-    }
+.count-block {
+  flex: 1;
+  min-width: 80px;
+  background: white;
+  border: 1px solid var(--paper-shadow);
+  position: relative;
+  overflow: hidden;
+  /* graph-paper grid inside each block */
+  background-image: repeating-linear-gradient(var(--ruled) 0 1px, transparent 1px 10px),
+                    repeating-linear-gradient(90deg, var(--ruled) 0 1px, transparent 1px 10px);
+  background-size: 10px 10px;
+}
+/* red margin line on left of each block */
+.count-block::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(220,60,40,0.3);
+  z-index: 1;
+}
 
-    /* --- "IT IS TIME" alert overlay --- */
-    #result-day-alert {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.92);
-      z-index: 9999;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-    }
-    #result-day-alert.show {
-      display: flex !important;
-    }
-    #result-day-alert h1 {
-      font-family: 'Creepster', cursive;
-      font-size: clamp(3rem, 10vw, 7rem);
-      color: var(--blood);
-      animation: shake 0.5s infinite;
-    }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-8px); }
-      75% { transform: translateX(8px); }
-    }
+.count-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.3rem 0.35rem;
+}
 
-    /* responsive tweaks */
-    @media (max-width: 480px) {
-      .count-block { min-width: 70px; padding: 0.8rem 1rem 0.6rem; }
-      .eye-container { gap: 1rem; }
-    }
-  </style>
+.count-number {
+  font-family: 'VT323', monospace;
+  font-size: clamp(3rem, 9vw, 5rem);
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -2px;
+  /* stamp-like look */
+  text-shadow: 1px 1px 0 var(--paper-shadow);
+  position: relative;
+}
+/* "inked" unevenness */
+.count-number::after {
+  content: attr(data-val);
+  position: absolute;
+  inset: 0;
+  color: var(--red-ink);
+  opacity: 0.08;
+  transform: translate(1px, 1px) skewX(-1deg);
+}
+
+.count-label {
+  font-family: 'Caveat', cursive;
+  font-size: 0.7rem;
+  color: var(--worn);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 0.1rem;
+}
+
+/* hand-drawn circle on DAYS block */
+.count-block.days-block::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px solid var(--red-ink);
+  border-radius: 50% 48% 52% 50% / 48% 50% 50% 52%;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ===================== BD CLOCK ROW ===================== */
+.clock-row {
+  margin: 0.5rem 1.5rem 0 72px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.clock-row .clock-label {
+  font-family: 'Caveat', cursive;
+  font-size: 0.75rem;
+  color: var(--worn);
+  white-space: nowrap;
+}
+.clock-row .clock-val {
+  font-family: 'VT323', monospace;
+  font-size: 0.85rem;
+  color: var(--blue-ink);
+  letter-spacing: 1px;
+}
+
+/* ===================== PANIC METER ===================== */
+.panic-zone {
+  margin: 1.2rem 1.5rem 0 72px;
+}
+.panic-heading {
+  font-family: 'Caveat', cursive;
+  font-size: 0.9rem;
+  color: var(--red-ink);
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.panic-track {
+  height: 22px;
+  background: white;
+  border: 1px solid var(--paper-shadow);
+  position: relative;
+  overflow: hidden;
+}
+/* ruled lines over the bar */
+.panic-track::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 9px,
+    rgba(180,160,120,0.15) 9px,
+    rgba(180,160,120,0.15) 10px
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+.panic-fill {
+  height: 100%;
+  background: var(--red-ink);
+  transition: width 1.2s ease;
+  position: relative;
+  z-index: 1;
+}
+.panic-fill::after {
+  content: '▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓';
+  position: absolute;
+  inset: 0;
+  color: rgba(255,255,255,0.12);
+  font-size: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 22px;
+}
+.panic-subtext {
+  font-family: 'Caveat', cursive;
+  font-size: 0.82rem;
+  color: var(--ink);
+  margin-top: 0.25rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ===================== BABA FORECAST WIDGET ===================== */
+.baba-zone {
+  margin: 1.4rem 1.5rem 0 72px;
+  border: 1px solid var(--paper-shadow);
+  background: rgba(255,255,255,0.4);
+  padding: 0.7rem 0.8rem 0.8rem;
+  position: relative;
+}
+.baba-zone::before {
+  content: 'Baba Reaction Forecast™';
+  position: absolute;
+  top: -0.55rem;
+  left: 0.7rem;
+  background: var(--paper);
+  padding: 0 0.3rem;
+  font-family: 'Caveat', cursive;
+  font-size: 0.8rem;
+  color: var(--red-ink);
+  font-weight: 700;
+}
+.baba-faces {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.baba-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 50px;
+  opacity: 0.4;
+  transition: opacity 0.5s;
+  cursor: default;
+}
+.baba-face.active { opacity: 1; }
+.baba-face svg { width: 36px; height: 36px; }
+.baba-face-label {
+  font-family: 'Caveat', cursive;
+  font-size: 0.65rem;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.1;
+}
+.baba-result-text {
+  font-family: 'Caveat', cursive;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-align: center;
+  border-top: 1px dashed var(--paper-shadow);
+  padding-top: 0.4rem;
+  font-style: italic;
+  min-height: 1.5rem;
+}
+
+/* ===================== RULED NOTES SECTION ===================== */
+.notes-zone {
+  margin: 1.4rem 1.5rem 0 72px;
+}
+.notes-heading {
+  font-family: 'Caveat', cursive;
+  font-size: 0.9rem;
+  color: var(--worn);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.notes-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--paper-shadow);
+}
+
+.note-line {
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  color: var(--ink);
+  line-height: 32px; /* matches ruled lines */
+  padding-left: 0.3rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  position: relative;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.4s, transform 0.4s;
+}
+.note-line.visible { opacity: 1; transform: translateX(0); }
+.note-bullet {
+  font-size: 0.7rem;
+  color: var(--red-ink);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.note-line .bn {
+  font-family: 'Tiro Bangla', 'Caveat', serif;
+  font-size: 0.9rem;
+}
+.note-line .red { color: var(--red-ink); }
+.note-line .blue { color: var(--blue-ink); }
+.note-line .crossed-text {
+  text-decoration: line-through;
+  opacity: 0.5;
+  font-size: 0.85em;
+}
+
+/* ===================== TERMINAL / LOG ===================== */
+.terminal-zone {
+  margin: 1.4rem 1.5rem 0 72px;
+  background: #0e1a0e;
+  border: 1px solid #2a3a2a;
+  padding: 0.7rem 0.8rem;
+  position: relative;
+  font-family: 'VT323', monospace;
+}
+.terminal-zone::before {
+  content: '● ● ●';
+  position: absolute;
+  top: 0.3rem;
+  left: 0.5rem;
+  font-size: 0.5rem;
+  color: #3a3;
+  letter-spacing: 3px;
+}
+.terminal-header {
+  text-align: center;
+  font-size: 0.65rem;
+  color: #3a3;
+  letter-spacing: 2px;
+  padding-top: 0.2rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #1a2a1a;
+  padding-bottom: 0.3rem;
+}
+.terminal-line {
+  font-size: 0.95rem;
+  color: #4d9;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.terminal-line.err { color: #d44; }
+.terminal-line.warn { color: #d94; }
+.terminal-cursor { animation: blink-fast 0.7s steps(1) infinite; }
+@keyframes blink-fast { 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+#live-log { min-height: 2.5rem; }
+
+/* ===================== QUOTE BOX ===================== */
+.quote-zone {
+  margin: 1.4rem 1.5rem 0 72px;
+  padding: 0.7rem 0.8rem;
+  border-left: 3px solid var(--red-ink);
+  background: rgba(192,24,12,0.04);
+  min-height: 3.5rem;
+  position: relative;
+  transition: opacity 0.4s;
+}
+.quote-text {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--ink);
+  line-height: 1.5;
+  font-style: italic;
+}
+.quote-text .bn { font-family: 'Tiro Bangla', serif; font-size: 0.95rem; }
+.quote-attr {
+  font-family: 'Special Elite', serif;
+  font-size: 0.7rem;
+  color: var(--worn);
+  letter-spacing: 1px;
+  margin-top: 0.3rem;
+  display: block;
+}
+/* red underline scrawl */
+.quote-zone::after {
+  content: '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  color: var(--red-ink);
+  font-size: 0.6rem;
+  opacity: 0.2;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* ===================== SHARE BUTTON ===================== */
+.share-zone {
+  margin: 1.6rem 1.5rem 0 72px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.share-btn {
+  background: transparent;
+  border: 1.5px solid var(--red-ink);
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--red-ink);
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transform: rotate(-0.5deg);
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+.share-btn::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed var(--red-ink);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.share-btn:hover { background: var(--red-ink); color: var(--paper); }
+.share-hint {
+  font-family: 'Caveat', cursive;
+  font-size: 0.8rem;
+  color: var(--worn);
+  font-style: italic;
+}
+
+/* ===================== FOOTER ===================== */
+.footer-zone {
+  margin: 2rem 1.5rem 0 72px;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--paper-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.footer-left {
+  font-family: 'VT323', monospace;
+  font-size: 0.75rem;
+  color: #aaa;
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+.footer-right {
+  font-family: 'Caveat', cursive;
+  font-size: 0.8rem;
+  color: var(--worn);
+  text-align: right;
+  font-style: italic;
+}
+
+/* ===================== DOODLES / MARGIN ART ===================== */
+.doodle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  font-family: 'Caveat', cursive;
+  color: var(--red-ink);
+  opacity: 0.5;
+}
+.doodle.star { font-size: 0.9rem; }
+.doodle.note { font-size: 0.7rem; line-height:1.4; }
+
+/* ===================== RESULT DAY OVERLAY ===================== */
+#result-day-alert {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,0,0,0.96);
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+#result-day-alert.show { display: flex !important; }
+.alert-title {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(2.5rem, 9vw, 6rem);
+  font-weight: 700;
+  color: #e02020;
+  animation: jitter 0.12s linear infinite;
+  line-height: 1.1;
+  text-shadow: 3px 0 #000, -3px 0 #000;
+}
+@keyframes jitter {
+  0%   { transform: translate(0,0) rotate(0); }
+  20%  { transform: translate(-2px,1px) rotate(-0.5deg); }
+  40%  { transform: translate(2px,-1px) rotate(0.5deg); }
+  60%  { transform: translate(-1px,2px) rotate(0); }
+  80%  { transform: translate(1px,-2px) rotate(0.3deg); }
+  100% { transform: translate(0,0) rotate(0); }
+}
+.alert-sub {
+  font-family: 'Special Elite', serif;
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: #c8bfae;
+  margin-top: 1rem;
+  line-height: 1.7;
+}
+.alert-close {
+  margin-top: 2rem;
+  background: transparent;
+  border: 1.5px solid #e02020;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e02020;
+  padding: 0.6rem 2rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.alert-close:hover { background: #e02020; color: #000; }
+
+/* ===================== STICKER ===================== */
+.sticker {
+  position: absolute;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  transform-origin: center;
+  z-index: 20;
+  pointer-events: none;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 600px) {
+  .paper-sheet {
+    background-image:
+      repeating-linear-gradient(transparent, transparent 31px, var(--ruled) 31px, var(--ruled) 32px),
+      linear-gradient(90deg, transparent 38px, var(--margin) 38px, var(--margin) 40px, transparent 40px);
+  }
+  .header-zone, .title-zone, .bise-section,
+  .countdown-zone, .clock-row, .panic-zone,
+  .baba-zone, .notes-zone, .terminal-zone,
+  .quote-zone, .share-zone, .footer-zone { margin-left: 44px; }
+  .count-block { min-width: 60px; }
+  .header-stamp { width: 72px; height: 72px; right: 0.8rem; }
+}
+</style>
 </head>
 <body>
 
-<!-- Floating skulls generated by JS -->
-<div id="skull-container"></div>
+<!-- Animated film-grain canvas background -->
+<canvas id="bg-canvas"></canvas>
 
-<div class="page-wrapper">
+<div class="paper-sheet">
 
-  <!-- Blood drip bar -->
-  <div class="drip-bar">
-    <svg viewBox="0 0 1000 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="1000" height="8" fill="#6a0000"/>
-      <path d="M50,8 Q55,30 52,50 Q50,55 48,50 Q45,30 50,8" fill="#8b0000"/>
-      <path d="M120,8 Q126,45 123,65 Q121,72 119,65 Q116,45 120,8" fill="#6a0000"/>
-      <path d="M220,8 Q225,35 222,52 Q220,58 218,52 Q215,35 220,8" fill="#8b0000"/>
-      <path d="M340,8 Q347,55 344,75 Q342,82 340,75 Q337,55 340,8" fill="#7a0000"/>
-      <path d="M450,8 Q455,28 452,44 Q450,50 448,44 Q445,28 450,8" fill="#6a0000"/>
-      <path d="M560,8 Q567,50 564,68 Q562,75 560,68 Q557,50 560,8" fill="#8b0000"/>
-      <path d="M680,8 Q685,32 682,48 Q680,54 678,48 Q675,32 680,8" fill="#7a0000"/>
-      <path d="M780,8 Q787,48 784,66 Q782,73 780,66 Q777,48 780,8" fill="#6a0000"/>
-      <path d="M900,8 Q905,30 902,46 Q900,52 898,46 Q895,30 900,8" fill="#8b0000"/>
-      <path d="M960,8 Q964,22 962,34 Q960,38 958,34 Q956,22 960,8" fill="#7a0000"/>
-    </svg>
+  <!-- ======= HEADER ======= -->
+  <div class="header-zone">
+    <div class="header-stamp">
+      <span class="stamp-top">RESULT</span>
+      <span class="stamp-big">?/A+</span>
+      <span class="stamp-top" style="font-size:0.55rem; margin-top:2px;">PENDING</span>
+    </div>
+    <div class="exam-header-line">
+      <span>BANGLADESH EDUCATION BOARD</span>
+      <span>ROLL: ████████</span>
+      <span>REG: ████████</span>
+    </div>
+
+    <!-- doodles in margin -->
+    <div class="doodle note" style="left:4px; top:0.5rem;">★<br/>★<br/>☆</div>
   </div>
 
-  <!-- Watching eyes -->
-  <div class="eye-container">
-    <div class="eye">
-      <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,15 Q30,0 60,15 Q30,30 0,15 Z" fill="#1a0a0a" stroke="#6a0000" stroke-width="1"/>
-        <circle cx="30" cy="15" r="8" fill="#0a0006"/>
-        <circle id="pupil-l" cx="30" cy="15" r="5" fill="#8b0000"/>
-        <circle cx="32" cy="13" r="1.5" fill="rgba(255,255,255,0.15)"/>
-      </svg>
-    </div>
-    <div class="eye">
-      <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,15 Q30,0 60,15 Q30,30 0,15 Z" fill="#1a0a0a" stroke="#6a0000" stroke-width="1"/>
-        <circle cx="30" cy="15" r="8" fill="#0a0006"/>
-        <circle id="pupil-r" cx="30" cy="15" r="5" fill="#8b0000"/>
-        <circle cx="32" cy="13" r="1.5" fill="rgba(255,255,255,0.15)"/>
-      </svg>
-    </div>
+  <!-- ======= TITLE ======= -->
+  <div class="title-zone" style="position:relative;">
+    <span class="subject-label">Subject: বেঁচে থাকা — SSC Batch 2025</span>
+    <h1 class="main-title">
+      <span class="crossed">Normal Life</span><br/>
+      এখন শুধু <span class="fear-word">ভয়</span>
+    </h1>
+    <span class="subtitle-scrawl">result আসার আগে কতটা সহ্য করা যায় — একটা গবেষণা</span>
+    <div class="doodle" style="left:6px; top:2.5rem; font-size:0.65rem; writing-mode:vertical-rl; transform:rotate(180deg); letter-spacing:1px;">পড়তাম যদি...</div>
+    <div class="doodle" style="left:5px; bottom:0; font-size:0.65rem;">💀</div>
   </div>
 
-  <!-- Title -->
-  <h1 class="horror-title">☠ SSC Result ☠</h1>
-  <p class="horror-title" style="font-size: clamp(1.4rem, 5vw, 3rem); margin-top:0.2rem;">আসছে তোমার জন্য...</p>
-  <p class="subtitle">[ THE DAY OF RECKONING APPROACHES ]</p>
-
-  <!-- Live BD clock -->
-  <div id="bd-clock" style="font-family:'VT323',monospace; font-size:0.85rem; color:#555; letter-spacing:1px; text-align:center; margin-bottom:0.3rem;">🕐 Bangladesh time: loading...</div>
-
-  <!-- Result date -->
-  <div class="result-date-box">
-    ফলাফল: <span>☠</span> 20 JULY 2026 <span>☠</span>
+  <!-- ======= STICKER: DOOMED ======= -->
+  <div class="sticker" id="doomed-sticker"
+    style="top:6.5rem; right: 5.5rem; background:#fffbe6; border:1px solid #e0c060; padding:0.35rem 0.6rem; font-size:0.72rem; color:#7a6000; transform:rotate(5deg); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); z-index:15;">
+    ⚠ পরীক্ষা হয়ে গেছে<br/>এখন শুধু অপেক্ষা
   </div>
 
-  <!-- Countdown blocks -->
-  <div class="countdown-grid">
-    <div class="count-block">
-      <div class="count-number" id="cnt-days">00</div>
-      <div class="count-label">DAYS</div>
+  <!-- ======= BISE FAKE LOADING ======= -->
+  <div class="bise-section">
+    <div class="bise-bar-row">
+      <span class="bise-bar-label">Result loading:</span>
+      <div class="bise-bar-track">
+        <div class="bise-bar-fill"></div>
+      </div>
+      <span class="bise-bar-label" style="color:var(--red-ink); font-size:0.75rem;">99%</span>
     </div>
-    <div class="count-block">
-      <div class="count-number" id="cnt-hours">00</div>
-      <div class="count-label">HOURS</div>
-    </div>
-    <div class="count-block">
-      <div class="count-number" id="cnt-mins">00</div>
-      <div class="count-label">MINUTES</div>
-    </div>
-    <div class="count-block">
-      <div class="count-number" id="cnt-secs">00</div>
-      <div class="count-label">SECONDS</div>
+    <div class="bise-status">
+      <span id="bise-status-text">■ Connecting to educationboardresults.gov.bd...</span>
+      &nbsp;Server not responding. As always.
     </div>
   </div>
 
-  <!-- Panic meter -->
-  <div class="panic-section">
-    <div class="panic-label">📊 PANIC LEVEL</div>
-    <div class="panic-bar-bg">
-      <div class="panic-bar-fill" id="panic-fill" style="width: 0%"></div>
+  <!-- ======= COUNTDOWN ======= -->
+  <div class="countdown-zone">
+    <div class="countdown-label-row">আর মাত্র বাকি আছে &nbsp;→</div>
+    <div class="countdown-grid">
+      <div class="count-block days-block">
+        <div class="count-inner">
+          <div class="count-number" id="cnt-days" data-val="00">00</div>
+          <div class="count-label">days / দিন</div>
+        </div>
+      </div>
+      <div class="count-block">
+        <div class="count-inner">
+          <div class="count-number" id="cnt-hours" data-val="00">00</div>
+          <div class="count-label">hours / ঘণ্টা</div>
+        </div>
+      </div>
+      <div class="count-block">
+        <div class="count-inner">
+          <div class="count-number" id="cnt-mins" data-val="00">00</div>
+          <div class="count-label">minutes / মিনিট</div>
+        </div>
+      </div>
+      <div class="count-block">
+        <div class="count-inner">
+          <div class="count-number" id="cnt-secs" data-val="00">00</div>
+          <div class="count-label">seconds / সেকেন্ড</div>
+        </div>
+      </div>
     </div>
-    <div class="panic-text" id="panic-text">Calculating your doom...</div>
   </div>
 
-  <!-- Heartbeat line -->
-  <div class="heartbeat-wrap">
-    <svg viewBox="0 0 480 50" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <polyline id="hb-line"
-        points="0,25 40,25 50,25 60,5 70,45 80,15 90,35 100,25 140,25 180,25 220,5 230,45 240,15 250,35 260,25 300,25 340,25 380,5 390,45 400,15 410,35 420,25 460,25 480,25"
-        fill="none" stroke="#6a0000" stroke-width="1.5"
-        style="animation: hb-anim 1.5s linear infinite;"/>
-      <defs>
-        <style>
-          @keyframes hb-anim {
-            0% { stroke: #6a0000; }
-            40% { stroke: #cc0000; }
-            60% { stroke: #cc0000; }
-            100% { stroke: #6a0000; }
-          }
-        </style>
-      </defs>
-    </svg>
+  <!-- ======= BD CLOCK ======= -->
+  <div class="clock-row">
+    <span class="clock-label">এখন বাংলাদেশ সময়:</span>
+    <span class="clock-val" id="bd-clock">--:--:--</span>
+    <span class="clock-label" style="margin-left:auto; color:#aaa; font-size:0.7rem;">Target: 20 Jul 2026, 8:00 AM BST</span>
   </div>
 
-  <!-- Quote box -->
-  <div class="quote-box" id="rotating-quote">
-    তুমি কি জানো কাল সকালে কী হবে? জানো না... কিন্তু Board জানে। ☠
-    <span class="quote-author">— SSC Results, probably</span>
+  <!-- ======= PANIC METER ======= -->
+  <div class="panic-zone">
+    <div class="panic-heading">
+      ⚡ আতঙ্ক-মিটার
+      <span style="font-weight:400; font-size:0.8rem; color:var(--worn); margin-left:0.2rem;">(বৈজ্ঞানিক পদ্ধতিতে নির্ণীত)</span>
+    </div>
+    <div class="panic-track">
+      <div class="panic-fill" id="panic-fill" style="width:0%"></div>
+    </div>
+    <div class="panic-subtext" id="panic-text">System warming up... মাপা হচ্ছে...</div>
   </div>
 
-  <!-- Scrolling cursed messages -->
-  <div class="messages-container">
-    <span id="scroll-msg">System initializing fear module...</span>
+  <!-- ======= BABA FORECAST ======= -->
+  <div class="baba-zone">
+    <div class="baba-faces" id="baba-faces">
+
+      <!-- Face 1: Proud -->
+      <div class="baba-face" id="face-proud">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="17" stroke="#1a2e6e" stroke-width="1.5" fill="none"/>
+          <circle cx="14" cy="16" r="2" fill="#1a2e6e"/>
+          <circle cx="26" cy="16" r="2" fill="#1a2e6e"/>
+          <path d="M13 26 Q20 32 27 26" stroke="#1a2e6e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- eyebrows up -->
+          <path d="M11 12 Q14 10 17 12" stroke="#1a2e6e" stroke-width="1" fill="none"/>
+          <path d="M23 12 Q26 10 29 12" stroke="#1a2e6e" stroke-width="1" fill="none"/>
+          <!-- star on chest -->
+          <text x="18" y="37" font-size="5" fill="#1a2e6e">★</text>
+        </svg>
+        <span class="baba-face-label">Proud Baba<br/>"আমার ছেলে/মেয়ে!"</span>
+      </div>
+
+      <!-- Face 2: Suspicious -->
+      <div class="baba-face" id="face-sus">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="17" stroke="#555" stroke-width="1.5" fill="none"/>
+          <circle cx="14" cy="17" r="2" fill="#555"/>
+          <circle cx="26" cy="17" r="2" fill="#555"/>
+          <path d="M13 27 Q20 25 27 27" stroke="#555" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- one eyebrow raised -->
+          <path d="M11 12 Q14 10 17 13" stroke="#555" stroke-width="1.2" fill="none"/>
+          <path d="M23 13 Q26 13 29 13" stroke="#555" stroke-width="1.2" fill="none"/>
+          <!-- question mark -->
+          <text x="18" y="37" font-size="6" fill="#555">?</text>
+        </svg>
+        <span class="baba-face-label">Suspicious Baba<br/>"পড়েছিলে তো?"</span>
+      </div>
+
+      <!-- Face 3: Concerned -->
+      <div class="baba-face" id="face-concern">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="17" stroke="#8a5a00" stroke-width="1.5" fill="none"/>
+          <circle cx="14" cy="16" r="2" fill="#8a5a00"/>
+          <circle cx="26" cy="16" r="2" fill="#8a5a00"/>
+          <!-- worried squiggle mouth -->
+          <path d="M13 27 Q16 25 20 27 Q24 29 27 27" stroke="#8a5a00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- furrowed brow -->
+          <path d="M11 13 Q14 11 17 13" stroke="#8a5a00" stroke-width="1.5" fill="none"/>
+          <path d="M23 13 Q26 11 29 13" stroke="#8a5a00" stroke-width="1.5" fill="none"/>
+          <path d="M17 13 Q19 12 21 13" stroke="#8a5a00" stroke-width="1" fill="none"/>
+        </svg>
+        <span class="baba-face-label">Concerned Baba<br/>"রেজাল্ট কেমন হবে?"</span>
+      </div>
+
+      <!-- Face 4: Devastated -->
+      <div class="baba-face" id="face-sad">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="17" stroke="#c0180c" stroke-width="1.5" fill="none"/>
+          <line x1="12" y1="14" x2="17" y2="18" stroke="#c0180c" stroke-width="1.5"/>
+          <line x1="17" y1="14" x2="12" y2="18" stroke="#c0180c" stroke-width="1.5"/>
+          <line x1="23" y1="14" x2="28" y2="18" stroke="#c0180c" stroke-width="1.5"/>
+          <line x1="28" y1="14" x2="23" y2="18" stroke="#c0180c" stroke-width="1.5"/>
+          <path d="M12 30 Q20 24 28 30" stroke="#c0180c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- tears -->
+          <ellipse cx="13" cy="21" rx="1" ry="2" fill="#c0180c" opacity="0.5"/>
+          <ellipse cx="27" cy="21" rx="1" ry="2" fill="#c0180c" opacity="0.5"/>
+        </svg>
+        <span class="baba-face-label">Disappointed Baba<br/>"প্রতিবেশীদের কী বলব?"</span>
+      </div>
+
+      <!-- Face 5: The Speech -->
+      <div class="baba-face" id="face-speech">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="17" stroke="#4a0080" stroke-width="1.5" fill="none"/>
+          <circle cx="14" cy="16" r="2" fill="#4a0080"/>
+          <circle cx="26" cy="16" r="2" fill="#4a0080"/>
+          <!-- megaphone mouth open wide -->
+          <path d="M12 24 Q20 32 28 24" stroke="#4a0080" stroke-width="1.5" fill="rgba(74,0,128,0.1)" stroke-linecap="round"/>
+          <!-- speech lines -->
+          <line x1="30" y1="10" x2="36" y2="8" stroke="#4a0080" stroke-width="0.8" opacity="0.6"/>
+          <line x1="31" y1="14" x2="37" y2="14" stroke="#4a0080" stroke-width="0.8" opacity="0.6"/>
+          <line x1="30" y1="18" x2="36" y2="20" stroke="#4a0080" stroke-width="0.8" opacity="0.6"/>
+        </svg>
+        <span class="baba-face-label">Lecture Mode<br/>"আমি তোমার বয়সে..."</span>
+      </div>
+
+    </div>
+    <div class="baba-result-text" id="baba-text">result এর দিন বাবার মুখ কেমন হবে — পূর্বাভাস দেখা হচ্ছে...</div>
   </div>
 
-  <!-- Share button -->
-  <button class="share-btn" onclick="shareIt()">⛧ বন্ধুদের ভয় দেখাও ⛧</button>
-
-  <!-- Footer -->
-  <div class="footer-text">
-    <p>BISE &nbsp;|&nbsp; চোখের জল রেডি রাখো &nbsp;|&nbsp; 2026</p>
-    <p style="margin-top:0.4rem; font-size:0.75rem;">made with 😰 and existential dread</p>
+  <!-- ======= NOTES SECTION ======= -->
+  <div class="notes-zone">
+    <div class="notes-heading">📝 পরীক্ষার পরের অনুভূতি — ব্যক্তিগত নোট</div>
+    <div class="note-line" id="note-1">
+      <span class="note-bullet">→</span>
+      <span><span class="red">★ এখনও বিশ্বাস হচ্ছে না যে পরীক্ষা শেষ।</span> কিন্তু result আসেনি।</span>
+    </div>
+    <div class="note-line" id="note-2">
+      <span class="note-bullet">→</span>
+      <span class="bn">রাত ৩টায় হঠাৎ মনে পড়ে — <span class="red">ওই MCQ টা ভুল দিয়েছিলাম।</span></span>
+    </div>
+    <div class="note-line" id="note-3">
+      <span class="note-bullet">→</span>
+      <span><span class="crossed-text">মনে শান্তি আছে</span> &nbsp;<span class="red">← মিথ্যা</span></span>
+    </div>
+    <div class="note-line" id="note-4">
+      <span class="note-bullet">→</span>
+      <span class="bn">পাড়ার চাচা জিজ্ঞেস করলেন: <span class="blue">"পরীক্ষা কেমন হয়েছে বাবা?"</span> আমি: <span class="red">👁👄👁</span></span>
+    </div>
+    <div class="note-line" id="note-5">
+      <span class="note-bullet">→</span>
+      <span>educationboardresults.gov.bd bookmark করা আছে। <span class="red">২০ বার।</span></span>
+    </div>
+    <div class="note-line" id="note-6">
+      <span class="note-bullet">→</span>
+      <span class="bn"><span class="crossed-text">ভালো result করব</span> → <span class="crossed-text">ঠিকঠাক হবে</span> → <span class="red">দোয়া করতেছি</span></span>
+    </div>
+    <div class="note-line" id="note-7">
+      <span class="note-bullet">→</span>
+      <span>Board চেয়ারম্যান কি কখনো ভুল করেন? <span class="blue">[গবেষণা চলছে]</span></span>
+    </div>
+    <div class="note-line" id="note-8">
+      <span class="note-bullet">→</span>
+      <span class="bn">আম্মু ইতিমধ্যে পাড়ার সবাইকে জানিয়ে দিয়েছেন। <span class="red">ব্যর্থ হওয়ার অপশন নেই।</span></span>
+    </div>
   </div>
 
-</div>
+  <!-- ======= TERMINAL LOG ======= -->
+  <div class="terminal-zone">
+    <div class="terminal-header">BISE_SYSTEM_LOG v2.0 — STUDENT_ANXIETY_MODULE.exe</div>
+    <div id="live-log">
+      <div class="terminal-line">> Initializing result_dread.exe...</div>
+    </div>
+    <div class="terminal-line">
+      <span id="live-msg" style="color:#aed"></span><span class="terminal-cursor">█</span>
+    </div>
+  </div>
 
-<!-- Result day overlay -->
+  <!-- ======= QUOTE ======= -->
+  <div class="quote-zone" id="quote-zone">
+    <div class="quote-text" id="quote-text">
+      <span class="bn">তুমি কি জানো কাল সকালে কী হবে?</span> জানো না... কিন্তু Board জানে।
+    </div>
+    <span class="quote-attr" id="quote-attr">— SSC Results, probably</span>
+  </div>
+
+  <!-- ======= SHARE ======= -->
+  <div class="share-zone">
+    <button class="share-btn" onclick="shareIt()">☠ বন্ধুদের কষ্ট দাও — Share করো</button>
+    <span class="share-hint">তুমি একা কষ্ট পাবে কেন?</span>
+  </div>
+
+  <!-- ======= FOOTER ======= -->
+  <div class="footer-zone">
+    <div class="footer-left">
+      BISE BANGLADESH © 2026<br/>
+      ROLL: ████████ &nbsp;|&nbsp; REG: ████████<br/>
+      Result status: PENDING / অমীমাংসিত
+    </div>
+    <div class="footer-right">
+      made with 😰 anxiety<br/>
+      &amp; 0 chill
+    </div>
+  </div>
+
+  <!-- margin doodles -->
+  <div class="doodle" style="position:absolute; left:5px; top:50%; font-size:0.65rem; line-height:2; writing-mode:vertical-rl; transform:rotate(180deg); color:var(--blue-ink); opacity:0.4;">WHY · WHY · WHY · WHY</div>
+
+</div><!-- /paper-sheet -->
+
+<!-- ======= RESULT DAY OVERLAY ======= -->
 <div id="result-day-alert">
-  <h1>আজই সেই দিন!!!</h1>
-  <p style="font-family:'VT323',monospace; font-size:1.5rem; color:#c8bfae; margin-top:1rem;">
-    THE RESULTS ARE OUT. MAY GOD BE WITH YOU. 🕯️
-  </p>
-  <button onclick="document.getElementById('result-day-alert').classList.remove('show')"
-    class="share-btn" style="margin-top:2rem;">দোয়া করো... ক্লিক করো</button>
+  <div class="alert-title">
+    ☠ আজই সেই দিন ☠
+  </div>
+  <div class="alert-sub">
+    Result বের হয়েছে।<br/>
+    এই মুহূর্তে বাবা-মা তোমার দিকে তাকিয়ে আছেন।<br/>
+    পাড়ার চাচারাও অপেক্ষায়।<br/>
+    <br/>
+    <span style="font-size:1.1em;">দোয়া করো। এখনও দেরি হয়নি।</span>
+  </div>
+  <button class="alert-close" onclick="document.getElementById('result-day-alert').classList.remove('show')">
+    সাহস নিয়ে দেখি → Result Check করো
+  </button>
 </div>
 
 <script>
-  // ---- TARGET: 20 July 2026, 08:00 AM Bangladesh Standard Time (UTC+6) ----
-  // Fixed UTC equivalent: 2026-07-20T02:00:00Z
-  // Using an explicit UTC string means this never depends on the visitor's browser timezone.
-  const TARGET_MS = Date.UTC(2026, 6, 20, 2, 0, 0); // month is 0-indexed: 6 = July
+// ============================================================
+//  TARGET: 20 July 2026 08:00 AM BST = UTC 02:00
+// ============================================================
+var TARGET_MS = Date.UTC(2026, 6, 20, 2, 0, 0);
 
-  function pad(n) { return String(n).padStart(2, '0'); }
+function pad(n) { return String(n).padStart(2,'0'); }
 
-  // ---- LIVE BD CLOCK ----
-  var bdFmt = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Dhaka',
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false
-  });
+// ---- BD CLOCK ----
+var bdFmt = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Dhaka',
+  hour: '2-digit', minute: '2-digit', second: '2-digit',
+  hour12: false
+});
 
-  function updateBDClock() {
-    var el = document.getElementById('bd-clock');
-    if (el) el.textContent = '🕐 Bangladesh time: ' + bdFmt.format(new Date());
-  }
+// ---- COUNTDOWN CORE ----
+var alertShown = false;
 
-  // ---- COUNTDOWN ----
-  var alertShown = false;
+function updateCountdown() {
+  var now = Date.now();
+  var diff = TARGET_MS - now;
 
-  function updateCountdown() {
-    var now = Date.now();
-    var diff = TARGET_MS - now;
+  var bdEl = document.getElementById('bd-clock');
+  if (bdEl) bdEl.textContent = bdFmt.format(new Date());
 
-    updateBDClock();
-
-    if (diff <= 0) {
-      ['cnt-days','cnt-hours','cnt-mins','cnt-secs'].forEach(function(id) {
-        document.getElementById(id).textContent = '00';
-      });
-      document.getElementById('panic-fill').style.width = '100%';
-      document.getElementById('panic-text').textContent = '💀 IT IS HERE. GOOD LUCK. 💀';
-      if (!alertShown) {
-        alertShown = true;
-        document.getElementById('result-day-alert').classList.add('show');
-      }
-      return;
-    }
-
-    var days  = Math.floor(diff / 86400000);
-    var hours = Math.floor((diff % 86400000) / 3600000);
-    var mins  = Math.floor((diff % 3600000) / 60000);
-    var secs  = Math.floor((diff % 60000) / 1000);
-
-    document.getElementById('cnt-days').textContent  = pad(days);
-    document.getElementById('cnt-hours').textContent = pad(hours);
-    document.getElementById('cnt-mins').textContent  = pad(mins);
-    document.getElementById('cnt-secs').textContent  = pad(secs);
-
-    // Panic meter: starts filling from 42 days out (the approximate wait), hits 100% at 0
-    var totalDuration = 42 * 86400000;
-    var elapsed = totalDuration - diff;
-    var panicPct = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
-    document.getElementById('panic-fill').style.width = panicPct.toFixed(1) + '%';
-
-    // Dynamic panic label
-    var label;
-    if (panicPct < 25)       label = 'Mild unease... it begins. 😶';
-    else if (panicPct < 50)  label = 'Heart rate: elevated. 😟';
-    else if (panicPct < 75)  label = 'Cannot sleep. Cannot eat. 😰';
-    else if (panicPct < 90)  label = 'CRITICAL. Pray harder. 🙏💀';
-    else                     label = '☠ MAXIMUM TERROR ☠';
-    document.getElementById('panic-text').textContent = label;
-  }
-
-  setInterval(updateCountdown, 1000);
-  updateCountdown(); // run immediately on load
-
-  // ---- SCROLLING TERMINAL MESSAGES ----
-  var scaryMsgs = [
-    "System initializing fear module...",
-    "Contacting BISE server... please wait... 💀",
-    "Your fate was decided 3 hours of exam ago.",
-    "The examiner's red pen has spoken.",
-    "Baba asking 'result kemon hobe?' loading...",
-    "Sleep.exe has stopped working.",
-    "GPA calculator has encountered a fatal error.",
-    "404: peace of mind not found.",
-    "WARNING: result day approaching. Prepare tissues.",
-    "Fun fact: you cannot escape this.",
-    "Your registration number knows what you did.",
-    "The answer key is judging you right now.",
-    "Loading existential crisis... 87% complete.",
-    "Ammu already told the neighbours. 😭",
-    "Dear Board: please be gentle. — Every student ever",
-    "Your dreams and your marks are in Schrodinger's box.",
-    "Pro tip: delete bad grade notifications. Wait, you can't.",
-    "Checking if crying is a valid coping mechanism... YES.",
-  ];
-  var msgIdx = 0;
-
-  function cycleMsg() {
-    var el = document.getElementById('scroll-msg');
-    if (!el) return;
-    el.style.animation = 'none';
-    void el.offsetHeight; // force reflow to restart animation
-    el.style.animation = 'msg-fade 0.5s ease';
-    el.textContent = scaryMsgs[msgIdx % scaryMsgs.length];
-    msgIdx++;
-  }
-  cycleMsg();
-  setInterval(cycleMsg, 4000);
-
-  // ---- ROTATING QUOTES ----
-  var quotes = [
-    { q: "তুমি কি জানো কাল সকালে কী হবে? জানো না... কিন্তু Board জানে।", a: "SSC Results, probably" },
-    { q: "In the middle of difficulty lies... your mark sheet.", a: "Albert Einstein (modified)" },
-    { q: "The night before results is the longest night of your life.", a: "Every SSC student ever" },
-    { q: "পরীক্ষা শেষ, কিন্তু আতঙ্ক শুরু।", a: "Ancient Bengali wisdom" },
-    { q: "Sleep is for people who didn't check their answers 40 times.", a: "Your brain at 3am" },
-    { q: "It's not about the marks, it's about surviving the wait.", a: "Philosopher unknown" },
-  ];
-  var qIdx = 0;
-
-  setInterval(function() {
-    qIdx = (qIdx + 1) % quotes.length;
-    var box = document.getElementById('rotating-quote');
-    if (!box) return;
-    box.style.transition = 'opacity 0.4s';
-    box.style.opacity = '0';
-    setTimeout(function() {
-      box.innerHTML = quotes[qIdx].q + '<span class="quote-author">— ' + quotes[qIdx].a + '</span>';
-      box.style.opacity = '1';
-    }, 400);
-  }, 6000);
-
-  // ---- FLOATING SKULLS ----
-  var symbols = ['☠', '💀', '👁', '🕯', '📋', '✏️', '😰'];
-
-  function spawnSkull() {
-    var el = document.createElement('div');
-    el.className = 'floating-skull';
-    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-    el.style.left = (Math.random() * 95) + 'vw';
-    el.style.bottom = '-2rem';
-    var dur = 8 + Math.random() * 12;
-    el.style.animationDuration = dur + 's';
-    el.style.animationDelay = (Math.random() * 3) + 's';
-    el.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
-    var container = document.getElementById('skull-container');
-    if (container) container.appendChild(el);
-    setTimeout(function() { el.remove(); }, (dur + 5) * 1000);
-  }
-  setInterval(spawnSkull, 2500);
-  spawnSkull(); spawnSkull();
-
-  // ---- EYE FOLLOW MOUSE ----
-  document.addEventListener('mousemove', function(e) {
-    document.querySelectorAll('.eye').forEach(function(eye) {
-      var rect = eye.getBoundingClientRect();
-      var cx = rect.left + rect.width / 2;
-      var cy = rect.top + rect.height / 2;
-      var angle = Math.atan2(e.clientY - cy, e.clientX - cx);
-      var dist = 3;
-      var px = 30 + Math.cos(angle) * dist;
-      var py = 15 + Math.sin(angle) * dist;
-      var circles = eye.querySelectorAll('circle');
-      if (circles[1]) { circles[1].setAttribute('cx', px); circles[1].setAttribute('cy', py); }
-      if (circles[2]) { circles[2].setAttribute('cx', px); circles[2].setAttribute('cy', py); }
-      if (circles[3]) { circles[3].setAttribute('cx', px + 2); circles[3].setAttribute('cy', py - 2); }
+  if (diff <= 0) {
+    ['cnt-days','cnt-hours','cnt-mins','cnt-secs'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.textContent = '00'; el.setAttribute('data-val','00'); }
     });
-  });
-
-  // ---- SHARE ----
-  function shareIt() {
-    const url = window.location.href;
-    const text = '☠ আমার SSC Result এর ভয়ের কাউন্টডাউন দেখো! তোমারও ভয় লাগছে? 😰💀';
-    if (navigator.share) {
-      navigator.share({ title: 'SSC Result Countdown', text: text, url: url });
-    } else {
-      navigator.clipboard.writeText(url + '\n' + text)
-        .then(() => alert('Link copied! Share it with your suffering friends. 💀'))
-        .catch(() => alert('Copy this link: ' + url));
+    var pf = document.getElementById('panic-fill');
+    if (pf) pf.style.width = '100%';
+    var pt = document.getElementById('panic-text');
+    if (pt) pt.textContent = '☠ MAXIMUM TERROR — result এসে গেছে!';
+    if (!alertShown) {
+      alertShown = true;
+      var ov = document.getElementById('result-day-alert');
+      if (ov) ov.classList.add('show');
     }
+    return;
   }
 
-  // ---- RANDOM SCREEN SHAKE ----
-  setInterval(() => {
-    if (Math.random() < 0.08) {
-      document.querySelector('.page-wrapper').style.transform = 'translateX(' + (Math.random()*6-3) + 'px)';
-      setTimeout(() => {
-        document.querySelector('.page-wrapper').style.transform = '';
-      }, 80);
+  var days  = Math.floor(diff / 86400000);
+  var hours = Math.floor((diff % 86400000) / 3600000);
+  var mins  = Math.floor((diff % 3600000)  / 60000);
+  var secs  = Math.floor((diff % 60000)    / 1000);
+
+  function setCount(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var s = pad(val);
+    el.textContent = s;
+    el.setAttribute('data-val', s);
+  }
+  setCount('cnt-days',  days);
+  setCount('cnt-hours', hours);
+  setCount('cnt-mins',  mins);
+  setCount('cnt-secs',  secs);
+
+  // Panic meter — full range from 42 days out
+  var total = 42 * 86400000;
+  var elapsed = total - diff;
+  var pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+
+  var pf = document.getElementById('panic-fill');
+  if (pf) pf.style.width = pct.toFixed(1) + '%';
+
+  var labels = [
+    [0,  20,  'নিশ্চিন্তে আছি... মিথ্যা না। 😶'],
+    [20, 40,  'হাত একটু কাঁপছে। স্বাভাবিক। 😟'],
+    [40, 60,  'রাতে ঘুম নেই, খাওয়া নেই। 😰'],
+    [60, 80,  'CRITICAL — বেশি দোয়া করো। 🙏'],
+    [80, 95,  '☠ আসছে... আসছে... আসছে...'],
+    [95, 101, '☠☠ এটা শেষ। সব শেষ। ☠☠']
+  ];
+  var label = '';
+  for (var i = 0; i < labels.length; i++) {
+    if (pct >= labels[i][0] && pct < labels[i][1]) { label = labels[i][2]; break; }
+  }
+  var pt = document.getElementById('panic-text');
+  if (pt) pt.textContent = label;
+
+  // Baba forecast
+  updateBabaForecast(days);
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// ---- BABA FORECAST ----
+var babaStates = [
+  { face: 'face-proud',   text: '৪১+ দিন বাকি — Baba এখনো শান্ত। "পড়াশোনা কেমন চলছে?" মুডে আছেন।' },
+  { face: 'face-sus',     text: 'তিন সপ্তাহের মধ্যে — সন্দেহ শুরু। "মোবাইল বন্ধ করো, চিন্তা করো।"' },
+  { face: 'face-concern', text: 'দুই সপ্তাহ বাকি — উদ্বেগ ঢেকে রাখছেন। রাতে নামাজে বাড়তি দোয়া।' },
+  { face: 'face-sad',     text: 'এক সপ্তাহ বাকি — "রেজাল্ট কী হবে?" প্রশ্নটা সকালে একবার, রাতে একবার।' },
+  { face: 'face-speech',  text: '৩ দিন বাকি — Lecture Mode চালু। "আমি তোমার বয়সে..." গল্প শুনতে থাকো।' }
+];
+
+function updateBabaForecast(daysLeft) {
+  var idx;
+  if (daysLeft > 41)      idx = 0;
+  else if (daysLeft > 20) idx = 1;
+  else if (daysLeft > 13) idx = 2;
+  else if (daysLeft > 6)  idx = 3;
+  else                    idx = 4;
+
+  var state = babaStates[idx];
+  document.querySelectorAll('.baba-face').forEach(function(f) { f.classList.remove('active'); });
+  var active = document.getElementById(state.face);
+  if (active) active.classList.add('active');
+  var bt = document.getElementById('baba-text');
+  if (bt) bt.textContent = state.text;
+}
+
+// ---- NOTES REVEAL ----
+var noteDelay = 200;
+for (var n = 1; n <= 8; n++) {
+  (function(i) {
+    setTimeout(function() {
+      var el = document.getElementById('note-' + i);
+      if (el) el.classList.add('visible');
+    }, noteDelay * i + 400);
+  })(n);
+}
+
+// ---- TERMINAL LOG ----
+var termLines = [
+  { t: 'err',  m: '> ERROR: student_confidence.dll not found' },
+  { t: '',     m: '> Loading anxiety_module... [██████████] 100%' },
+  { t: 'warn', m: '> WARNING: sleep_schedule.exe has crashed' },
+  { t: '',     m: '> Scanning registration number: ████████' },
+  { t: 'err',  m: '> ERROR: answer_sheet_regret.log — 847 entries found' },
+  { t: 'warn', m: '> WARNING: neighbour_inquiry_frequency CRITICAL' },
+  { t: '',     m: '> Checking baba_mood.json... status: VOLATILE' },
+  { t: 'err',  m: '> ERROR: peace_of_mind.exe not responding' },
+  { t: '',     m: '> Backup plan loaded: কান্না' },
+  { t: 'warn', m: '> WARNING: ammu already told all relatives' },
+  { t: '',     m: '> Prayer counter: ∞ (overflow)' },
+  { t: 'err',  m: '> FATAL: MCQ option (d) was correct. You picked (b).' },
+  { t: '',     m: '> Initiating दोয়া protocol...' },
+  { t: 'warn', m: '> WARNING: result_day approaching. Tissues: 0' },
+  { t: '',     m: '> Contacting educationboardresults.gov.bd...' },
+  { t: 'err',  m: '> ERROR: 504 Gateway Timeout. (Board server ডুবে গেছে)' },
+  { t: '',     m: '> Re-checking roll number for the 23rd time...' },
+];
+var tIdx = 0;
+var logEl = document.getElementById('live-log');
+var liveMsgEl = document.getElementById('live-msg');
+
+function typeTermLine() {
+  var entry = termLines[tIdx % termLines.length];
+  tIdx++;
+  if (!liveMsgEl) return;
+  liveMsgEl.className = entry.t === 'err' ? 'terminal-line err' : (entry.t === 'warn' ? 'terminal-line warn' : 'terminal-line');
+  var text = entry.m;
+  var i = 0;
+  liveMsgEl.textContent = '';
+  var typing = setInterval(function() {
+    if (!liveMsgEl) { clearInterval(typing); return; }
+    liveMsgEl.textContent = text.slice(0, i);
+    i++;
+    if (i > text.length) {
+      clearInterval(typing);
+      // push to log history after a pause
+      setTimeout(function() {
+        if (!logEl || !liveMsgEl) return;
+        var line = document.createElement('div');
+        line.className = 'terminal-line ' + entry.t;
+        line.textContent = text;
+        logEl.appendChild(line);
+        // keep only last 4 lines
+        while (logEl.children.length > 4) logEl.removeChild(logEl.firstChild);
+        liveMsgEl.textContent = '';
+        setTimeout(typeTermLine, 600);
+      }, 1000);
     }
-  }, 3000);
+  }, 28);
+}
+setTimeout(typeTermLine, 1200);
+
+// ---- ROTATING QUOTES ----
+var quotes = [
+  { q: '<span class="bn">তুমি কি জানো কাল সকালে কী হবে? জানো না... কিন্তু Board জানে।</span>', a: 'SSC Results, probably' },
+  { q: 'In the middle of every difficulty lies a mark sheet you cannot change.', a: 'Albert Einstein (modified, probably)' },
+  { q: '<span class="bn">পরীক্ষা শেষ, কিন্তু আতঙ্ক সবে শুরু।</span>', a: 'প্রাচীন বাংলা প্রবাদ' },
+  { q: 'Sleep is for people who have not Googled "what happens if I fail SSC" at 3am.', a: 'তোমার মাথা, রাত ৩টায়' },
+  { q: '<span class="bn">যে প্রশ্নের উত্তর জানতাম, সেটা আসেনি। যেটা আসছে, সেটা জানতাম না।</span>', a: 'প্রতিটি SSC পরীক্ষার্থী, সর্বকালে' },
+  { q: 'The BISE website will crash before you can see your result. It always does.', a: 'বাংলাদেশের ইন্টারনেট, 20 July সকালে' },
+  { q: '<span class="bn">প্রতিবেশী জিজ্ঞেস করার আগেই result দেখে ফেলো — নইলে তারা আগে জেনে যাবে।</span>', a: 'বাস্তব অভিজ্ঞতা' },
+  { q: '"How do you think it went?" — everyone asks. "Fine," you say. You are lying.', a: 'universal student experience' },
+];
+var qIdx = 0;
+
+setInterval(function() {
+  qIdx = (qIdx + 1) % quotes.length;
+  var zone = document.getElementById('quote-zone');
+  var qt   = document.getElementById('quote-text');
+  var qa   = document.getElementById('quote-attr');
+  if (!zone || !qt || !qa) return;
+  zone.style.opacity = '0';
+  setTimeout(function() {
+    qt.innerHTML = quotes[qIdx].q;
+    qa.textContent = '— ' + quotes[qIdx].a;
+    zone.style.transition = 'opacity 0.5s';
+    zone.style.opacity = '1';
+  }, 500);
+}, 7000);
+
+// ---- FILM GRAIN CANVAS ----
+(function() {
+  var c = document.getElementById('bg-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  function resize() { c.width = window.innerWidth; c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function drawGrain() {
+    var w = c.width, h = c.height;
+    // dark textured background
+    ctx.fillStyle = '#120c08';
+    ctx.fillRect(0,0,w,h);
+    // grain
+    var img = ctx.createImageData(w, h);
+    var d = img.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var v = Math.random() * 30 | 0;
+      d[i] = v * 0.6 | 0;
+      d[i+1] = v * 0.4 | 0;
+      d[i+2] = v * 0.2 | 0;
+      d[i+3] = 60 + (Math.random() * 30 | 0);
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  var lastGrain = 0;
+  function loop(ts) {
+    if (ts - lastGrain > 80) { drawGrain(); lastGrain = ts; }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+// ---- OCCASIONAL PAPER WOBBLE ----
+setInterval(function() {
+  if (Math.random() > 0.15) return;
+  var sheet = document.querySelector('.paper-sheet');
+  if (!sheet) return;
+  sheet.style.transition = 'transform 0.06s';
+  sheet.style.transform = 'translateX(' + (Math.random()*4-2).toFixed(1) + 'px) rotate(' + (Math.random()*0.3-0.15).toFixed(2) + 'deg)';
+  setTimeout(function() {
+    sheet.style.transform = '';
+  }, 100);
+}, 4000);
+
+// ---- SHARE ----
+function shareIt() {
+  var url = window.location.href;
+  var text = '☠ SSC result আসার আগের ভয়টা মাপো — বন্ধু, তুমি একা না! 😰💀';
+  if (navigator.share) {
+    navigator.share({ title: 'SSC Result Countdown', text: text, url: url });
+  } else {
+    var combined = text + '\n' + url;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(combined)
+        .then(function() { alert('Link copied করা হয়েছে! বন্ধুদের পাঠাও। 💀'); })
+        .catch(function() { prompt('এই link টা copy করো:', combined); });
+    } else {
+      prompt('এই link টা copy করো:', combined);
+    }
+  }
+}
+
+// ---- BISE STATUS CYCLER ----
+var biseTexts = [
+  '■ Connecting to educationboardresults.gov.bd...',
+  '■ Server not responding (as always)',
+  '■ Retry attempt #' + (Math.floor(Math.random()*40)+10) + '...',
+  '■ 504 Gateway Timeout — Board ব্যস্ত',
+  '■ Please try again after result day',
+  '■ Your patience is appreciated. (মিথ্যা)',
+];
+var bIdx = 0;
+setInterval(function() {
+  bIdx = (bIdx + 1) % biseTexts.length;
+  var el = document.getElementById('bise-status-text');
+  if (el) el.textContent = biseTexts[bIdx];
+}, 3500);
 </script>
 </body>
 </html>
