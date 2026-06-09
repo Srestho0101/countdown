@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SSC Result Countdown — আর কত দিন? 💀</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=VT323&display=swap');
+
+    :root {
+      --blood: #8b0000;
+      --dark-blood: #4a0000;
+      --rot: #2a1a00;
+      --bone: #e8dcc8;
+      --pale: #c8bfae;
+      --ghost: #a0c8a0;
+      --mold: #3a5a3a;
+      --flicker: #ff6600;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      background: #080408;
+      color: var(--bone);
+      font-family: 'Special Elite', cursive;
+      overflow-x: hidden;
+    }
+
+    /* Animated noise texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+      background-size: 150px;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.4;
+    }
+
+    /* Vignette */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, #000 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .page-wrapper {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    /* --- Dripping blood header --- */
+    .drip-bar {
+      width: 100%;
+      height: 60px;
+      position: relative;
+      margin-bottom: 1rem;
+      overflow: visible;
+    }
+    .drip-bar svg {
+      width: 100%;
+      height: 60px;
+      display: block;
+      overflow: visible;
+    }
+
+    /* --- Eye that watches --- */
+    .eye-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      margin: 0.5rem 0 1.5rem;
+    }
+    .eye {
+      width: 60px;
+      height: 30px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .eye svg { width: 100%; height: 100%; }
+
+    /* --- Title --- */
+    .horror-title {
+      font-family: 'Creepster', cursive;
+      font-size: clamp(2.4rem, 8vw, 5.5rem);
+      color: var(--blood);
+      text-align: center;
+      line-height: 1.1;
+      letter-spacing: 2px;
+      text-shadow:
+        0 0 20px rgba(139,0,0,0.8),
+        0 0 40px rgba(139,0,0,0.4),
+        3px 3px 0 #000;
+      animation: flicker-title 4s infinite;
+    }
+    @keyframes flicker-title {
+      0%,93%,97%,100% { opacity: 1; }
+      94%,96% { opacity: 0.4; }
+    }
+
+    .subtitle {
+      font-family: 'VT323', monospace;
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: var(--ghost);
+      text-align: center;
+      margin-top: 0.4rem;
+      letter-spacing: 3px;
+      opacity: 0.8;
+    }
+
+    /* --- Scary quote box --- */
+    .quote-box {
+      border: 1px solid var(--blood);
+      border-left: 4px solid var(--blood);
+      background: rgba(139,0,0,0.06);
+      padding: 0.75rem 1.2rem;
+      margin: 1.5rem 0;
+      max-width: 600px;
+      width: 100%;
+      font-size: 1rem;
+      color: var(--pale);
+      font-style: italic;
+      text-align: center;
+      position: relative;
+    }
+    .quote-box::before {
+      content: '"';
+      font-family: 'Creepster', cursive;
+      font-size: 4rem;
+      color: var(--blood);
+      position: absolute;
+      top: -1.5rem;
+      left: 0.5rem;
+      opacity: 0.4;
+    }
+    .quote-author {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #777;
+      font-style: normal;
+      letter-spacing: 1px;
+    }
+
+    /* --- Countdown grid --- */
+    .countdown-grid {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+    .count-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #100008;
+      border: 1px solid #3a0010;
+      border-top: 3px solid var(--blood);
+      padding: 1.2rem 1.5rem 0.8rem;
+      min-width: 100px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .count-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--blood), transparent);
+      opacity: 0.6;
+    }
+    .count-block:hover { transform: translateY(-3px); }
+    .count-number {
+      font-family: 'VT323', monospace;
+      font-size: clamp(3.5rem, 10vw, 5.5rem);
+      color: var(--bone);
+      line-height: 1;
+      text-shadow: 0 0 15px rgba(139,0,0,0.9), 0 0 30px rgba(139,0,0,0.4);
+      animation: pulse-count 2s ease-in-out infinite;
+    }
+    @keyframes pulse-count {
+      0%,100% { text-shadow: 0 0 10px rgba(139,0,0,0.8), 0 0 25px rgba(139,0,0,0.3); }
+      50% { text-shadow: 0 0 20px rgba(139,0,0,1), 0 0 40px rgba(139,0,0,0.6); }
+    }
+    .count-label {
+      font-family: 'Creepster', cursive;
+      font-size: 0.85rem;
+      color: var(--blood);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+    /* Skull decoration per block */
+    .count-block::after {
+      content: '☠';
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 10px;
+      opacity: 0.2;
+      color: var(--blood);
+    }
+
+    /* --- Result date display --- */
+    .result-date-box {
+      font-family: 'VT323', monospace;
+      font-size: clamp(1.2rem, 4vw, 1.7rem);
+      color: var(--ghost);
+      text-align: center;
+      letter-spacing: 2px;
+      border: 1px dashed #2a4a2a;
+      padding: 0.6rem 2rem;
+      margin: 0.5rem 0 1.5rem;
+    }
+    .result-date-box span {
+      color: #ff4444;
+      animation: blink 1.2s steps(1) infinite;
+    }
+    @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+
+    /* --- Panic meter --- */
+    .panic-section {
+      width: 100%;
+      max-width: 480px;
+      margin: 0.5rem 0 1.5rem;
+    }
+    .panic-label {
+      font-family: 'Creepster', cursive;
+      font-size: 1.1rem;
+      color: var(--blood);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .panic-bar-bg {
+      background: #0d000a;
+      border: 1px solid #3a0010;
+      height: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .panic-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3a0000, #8b0000, #ff2200);
+      transition: width 1s ease;
+      position: relative;
+    }
+    .panic-bar-fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 8px,
+        rgba(0,0,0,0.3) 8px,
+        rgba(0,0,0,0.3) 9px
+      );
+    }
+    .panic-text {
+      font-family: 'VT323', monospace;
+      font-size: 0.85rem;
+      color: var(--pale);
+      text-align: center;
+      margin-top: 0.4rem;
+      opacity: 0.8;
+      letter-spacing: 1px;
+    }
+
+    /* --- Creepy messages scrolling area --- */
+    .messages-container {
+      width: 100%;
+      max-width: 560px;
+      border: 1px solid #2a0010;
+      background: #060206;
+      padding: 0.8rem 1rem;
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      color: #7a7a6a;
+      letter-spacing: 1px;
+      min-height: 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .messages-container::before {
+      content: '> ';
+      color: var(--blood);
+      opacity: 0.7;
+    }
+    #scroll-msg {
+      display: inline;
+      animation: msg-fade 0.5s ease;
+    }
+    @keyframes msg-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- Footer --- */
+    .footer-text {
+      margin-top: 2.5rem;
+      font-family: 'VT323', monospace;
+      font-size: 0.9rem;
+      color: #333;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .footer-text a { color: #550000; text-decoration: none; }
+
+    /* --- Floating skulls bg --- */
+    .floating-skull {
+      position: fixed;
+      font-size: 1.5rem;
+      opacity: 0;
+      animation: float-up linear infinite;
+      pointer-events: none;
+      z-index: 3;
+    }
+    @keyframes float-up {
+      0% { opacity: 0; transform: translateY(0) rotate(0deg); }
+      10% { opacity: 0.12; }
+      80% { opacity: 0.07; }
+      100% { opacity: 0; transform: translateY(-100vh) rotate(360deg); }
+    }
+
+    /* --- Heartbeat line --- */
+    .heartbeat-wrap {
+      width: 100%;
+      max-width: 480px;
+      height: 50px;
+      margin: 0.5rem 0;
+      overflow: hidden;
+    }
+    .heartbeat-wrap svg { width: 100%; height: 100%; }
+
+    /* --- Share button --- */
+    .share-btn {
+      margin-top: 1rem;
+      background: transparent;
+      border: 1px solid var(--blood);
+      color: var(--blood);
+      font-family: 'Creepster', cursive;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      padding: 0.6rem 2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .share-btn:hover {
+      background: var(--blood);
+      color: var(--bone);
+      box-shadow: 0 0 20px rgba(139,0,0,0.5);
+    }
+
+    /* --- "IT IS TIME" alert overlay --- */
+    #result-day-alert {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 9999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    #result-day-alert.show { display: flex; }
+    #result-day-alert h1 {
+      font-family: 'Creepster', cursive;
+      font-size: clamp(3rem, 10vw, 7rem);
+      color: var(--blood);
+      animation: shake 0.5s infinite;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    /* responsive tweaks */
+    @media (max-width: 480px) {
+      .count-block { min-width: 70px; padding: 0.8rem 1rem 0.6rem; }
+      .eye-container { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Floating skulls generated by JS -->
+<div id="skull-container"></div>
+
+<div class="page-wrapper">
+
+  <!-- Blood drip bar -->
+  <div class="drip-bar">
+    <svg viewBox="0 0 1000 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1000" height="8" fill="#6a0000"/>
+      <path d="M50,8 Q55,30 52,50 Q50,55 48,50 Q45,30 50,8" fill="#8b0000"/>
+      <path d="M120,8 Q126,45 123,65 Q121,72 119,65 Q116,45 120,8" fill="#6a0000"/>
+      <path d="M220,8 Q225,35 222,52 Q220,58 218,52 Q215,35 220,8" fill="#8b0000"/>
+      <path d="M340,8 Q347,55 344,75 Q342,82 340,75 Q337,55 340,8" fill="#7a0000"/>
+      <path d="M450,8 Q455,28 452,44 Q450,50 448,44 Q445,28 450,8" fill="#6a0000"/>
+      <path d="M560,8 Q567,50 564,68 Q562,75 560,68 Q557,50 560,8" fill="#8b0000"/>
+      <path d="M680,8 Q685,32 682,48 Q680,54 678,48 Q675,32 680,8" fill="#7a0000"/>
+      <path d="M780,8 Q787,48 784,66 Q782,73 780,66 Q777,48 780,8" fill="#6a0000"/>
+      <path d="M900,8 Q905,30 902,46 Q900,52 898,46 Q895,30 900,8" fill="#8b0000"/>
+      <path d="M960,8 Q964,22 962,34 Q960,38 958,34 Q956,22 960,8" fill="#7a0000"/>
+    </svg>
+  </div>
+
+  <!-- Watching eyes -->
+  <div class="eye-container">
+    <div class="eye">
+      <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,15 Q30,0 60,15 Q30,30 0,15 Z" fill="#1a0a0a" stroke="#6a0000" stroke-width="1"/>
+        <circle cx="30" cy="15" r="8" fill="#0a0006"/>
+        <circle id="pupil-l" cx="30" cy="15" r="5" fill="#8b0000"/>
+        <circle cx="32" cy="13" r="1.5" fill="rgba(255,255,255,0.15)"/>
+      </svg>
+    </div>
+    <div class="eye">
+      <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,15 Q30,0 60,15 Q30,30 0,15 Z" fill="#1a0a0a" stroke="#6a0000" stroke-width="1"/>
+        <circle cx="30" cy="15" r="8" fill="#0a0006"/>
+        <circle id="pupil-r" cx="30" cy="15" r="5" fill="#8b0000"/>
+        <circle cx="32" cy="13" r="1.5" fill="rgba(255,255,255,0.15)"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <h1 class="horror-title">☠ SSC Result ☠</h1>
+  <p class="horror-title" style="font-size: clamp(1.4rem, 5vw, 3rem); margin-top:0.2rem;">আসছে তোমার জন্য...</p>
+  <p class="subtitle">[ THE DAY OF RECKONING APPROACHES ]</p>
+
+  <!-- Result date -->
+  <div class="result-date-box">
+    ফলাফল: <span>☠</span> 20 JULY 2025 <span>☠</span>
+  </div>
+
+  <!-- Countdown blocks -->
+  <div class="countdown-grid">
+    <div class="count-block">
+      <div class="count-number" id="cnt-days">00</div>
+      <div class="count-label">DAYS</div>
+    </div>
+    <div class="count-block">
+      <div class="count-number" id="cnt-hours">00</div>
+      <div class="count-label">HOURS</div>
+    </div>
+    <div class="count-block">
+      <div class="count-number" id="cnt-mins">00</div>
+      <div class="count-label">MINUTES</div>
+    </div>
+    <div class="count-block">
+      <div class="count-number" id="cnt-secs">00</div>
+      <div class="count-label">SECONDS</div>
+    </div>
+  </div>
+
+  <!-- Panic meter -->
+  <div class="panic-section">
+    <div class="panic-label">📊 PANIC LEVEL</div>
+    <div class="panic-bar-bg">
+      <div class="panic-bar-fill" id="panic-fill" style="width: 0%"></div>
+    </div>
+    <div class="panic-text" id="panic-text">Calculating your doom...</div>
+  </div>
+
+  <!-- Heartbeat line -->
+  <div class="heartbeat-wrap">
+    <svg viewBox="0 0 480 50" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <polyline id="hb-line"
+        points="0,25 40,25 50,25 60,5 70,45 80,15 90,35 100,25 140,25 180,25 220,5 230,45 240,15 250,35 260,25 300,25 340,25 380,5 390,45 400,15 410,35 420,25 460,25 480,25"
+        fill="none" stroke="#6a0000" stroke-width="1.5"
+        style="animation: hb-anim 1.5s linear infinite;"/>
+      <defs>
+        <style>
+          @keyframes hb-anim {
+            0% { stroke: #6a0000; }
+            40% { stroke: #cc0000; }
+            60% { stroke: #cc0000; }
+            100% { stroke: #6a0000; }
+          }
+        </style>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Quote box -->
+  <div class="quote-box" id="rotating-quote">
+    তুমি কি জানো কাল সকালে কী হবে? জানো না... কিন্তু Board জানে। ☠
+    <span class="quote-author">— SSC Results, probably</span>
+  </div>
+
+  <!-- Scrolling cursed messages -->
+  <div class="messages-container">
+    <span id="scroll-msg">System initializing fear module...</span>
+  </div>
+
+  <!-- Share button -->
+  <button class="share-btn" onclick="shareIt()">⛧ বন্ধুদের ভয় দেখাও ⛧</button>
+
+  <!-- Footer -->
+  <div class="footer-text">
+    <p>BISE &nbsp;|&nbsp; চোখের জল রেডি রাখো &nbsp;|&nbsp; 2025</p>
+    <p style="margin-top:0.4rem; font-size:0.75rem;">made with 😰 and existential dread</p>
+  </div>
+
+</div>
+
+<!-- Result day overlay -->
+<div id="result-day-alert">
+  <h1>আজই সেই দিন!!!</h1>
+  <p style="font-family:'VT323',monospace; font-size:1.5rem; color:#c8bfae; margin-top:1rem;">
+    THE RESULTS ARE OUT. MAY GOD BE WITH YOU. 🕯️
+  </p>
+  <button onclick="document.getElementById('result-day-alert').classList.remove('show')"
+    class="share-btn" style="margin-top:2rem;">দোয়া করো... ক্লিক করো</button>
+</div>
+
+<script>
+  // ---- TARGET DATE ----
+  const TARGET = new Date('2025-07-20T08:00:00');
+
+  // ---- COUNTDOWN ----
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      document.getElementById('cnt-days').textContent = '00';
+      document.getElementById('cnt-hours').textContent = '00';
+      document.getElementById('cnt-mins').textContent = '00';
+      document.getElementById('cnt-secs').textContent = '00';
+      document.getElementById('panic-fill').style.width = '100%';
+      document.getElementById('panic-text').textContent = '💀 IT IS HERE. GOOD LUCK. 💀';
+      document.getElementById('result-day-alert').classList.add('show');
+      return;
+    }
+
+    const days  = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins  = Math.floor((diff % 3600000) / 60000);
+    const secs  = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('cnt-days').textContent  = pad(days);
+    document.getElementById('cnt-hours').textContent = pad(hours);
+    document.getElementById('cnt-mins').textContent  = pad(mins);
+    document.getElementById('cnt-secs').textContent  = pad(secs);
+
+    // Panic meter: 0% at 90 days away, 100% at 0
+    const totalDuration = 90 * 86400000;
+    const elapsed = totalDuration - diff;
+    const panicPct = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+    document.getElementById('panic-fill').style.width = panicPct.toFixed(1) + '%';
+
+    const msgs = [
+      'Nervousness.exe is running...',
+      days + ' days until your fate is sealed.',
+      'Sleep quality: 0%. Anxiety: ' + Math.round(panicPct) + '%',
+      'Your GPA is still unknown... for ' + days + ' more days.',
+      'The Board of Education is watching.',
+      'Your parents have already planned the celebration... or the interrogation.',
+      'Ammo: prayers. Enemy: result sheet.',
+      'Refreshing the website before it is even live...',
+      days + ' days, ' + hours + ' hours of blissful ignorance remaining.',
+      'Have you rechecked your registration number for the 17th time?',
+      'Error 404: confidence not found.',
+      'Baba: "ki hobe result?" You: 👀',
+    ];
+    // Cycle through messages every 4 seconds — handled elsewhere
+  }
+
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // ---- SCROLLING MESSAGES ----
+  const scaryMsgs = [
+    "System initializing fear module...",
+    "Contacting BISE server... please wait... 💀",
+    "Your fate was decided 3 hours of exam ago.",
+    "The examiner's red pen has spoken.",
+    "Baba asking 'result kemon hobe?' loading...",
+    "Sleep.exe has stopped working.",
+    "GPA calculator has encountered a fatal error.",
+    "404: peace of mind not found.",
+    "WARNING: result day approaching. Prepare tissues.",
+    "Fun fact: you cannot escape this.",
+    "Your registration number knows what you did.",
+    "The answer key is judging you right now.",
+    "Loading existential crisis... 87% complete.",
+    "Ammu already told the neighbours. 😭",
+    "Dear Board: please be gentle. — Every student ever",
+    "Your dreams and your marks are in Schrödinger's box.",
+    "Pro tip: delete bad grade notifications. Wait, you can't.",
+  ];
+  let msgIdx = 0;
+  function cycleMsg() {
+    const el = document.getElementById('scroll-msg');
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = 'msg-fade 0.5s ease';
+    el.textContent = scaryMsgs[msgIdx % scaryMsgs.length];
+    msgIdx++;
+  }
+  cycleMsg();
+  setInterval(cycleMsg, 4000);
+
+  // ---- ROTATING QUOTES ----
+  const quotes = [
+    { q: "তুমি কি জানো কাল সকালে কী হবে? জানো না... কিন্তু Board জানে।", a: "SSC Results, probably" },
+    { q: "In the middle of difficulty lies... your mark sheet.", a: "Albert Einstein (modified)" },
+    { q: "The night before results is the longest night of your life.", a: "Every SSC student ever" },
+    { q: "পরীক্ষা শেষ, কিন্তু আতঙ্ক শুরু।", a: "Ancient Bengali wisdom" },
+    { q: "Sleep is for people who didn't check their answers 40 times.", a: "Your brain at 3am" },
+    { q: "It's not about the marks, it's about surviving the wait.", a: "Philosopher unknown" },
+  ];
+  let qIdx = 0;
+  setInterval(() => {
+    qIdx = (qIdx + 1) % quotes.length;
+    const box = document.getElementById('rotating-quote');
+    box.style.opacity = '0';
+    setTimeout(() => {
+      box.innerHTML = quotes[qIdx].q +
+        '<span class="quote-author">— ' + quotes[qIdx].a + '</span>';
+      box.style.opacity = '1';
+    }, 400);
+    box.style.transition = 'opacity 0.4s';
+  }, 6000);
+
+  // ---- FLOATING SKULLS ----
+  const symbols = ['☠', '💀', '👁', '🕯', '📋', '✏️', '😰'];
+  function spawnSkull() {
+    const el = document.createElement('div');
+    el.className = 'floating-skull';
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.bottom = '-2rem';
+    const dur = 8 + Math.random() * 12;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = (Math.random() * 4) + 's';
+    el.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+    document.getElementById('skull-container').appendChild(el);
+    setTimeout(() => el.remove(), (dur + 5) * 1000);
+  }
+  setInterval(spawnSkull, 2500);
+  spawnSkull(); spawnSkull();
+
+  // ---- EYE FOLLOW MOUSE ----
+  document.addEventListener('mousemove', (e) => {
+    document.querySelectorAll('.eye').forEach(eye => {
+      const rect = eye.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const angle = Math.atan2(e.clientY - cy, e.clientX - cx);
+      const dist = 3;
+      const px = 30 + Math.cos(angle) * dist;
+      const py = 15 + Math.sin(angle) * dist;
+      eye.querySelectorAll('circle').forEach((c, i) => {
+        if (i === 1) { c.setAttribute('cx', px); c.setAttribute('cy', py); }
+        if (i === 2) { c.setAttribute('cx', px); c.setAttribute('cy', py); }
+        if (i === 3) { c.setAttribute('cx', px + 2); c.setAttribute('cy', py - 2); }
+      });
+    });
+  });
+
+  // ---- SHARE ----
+  function shareIt() {
+    const url = window.location.href;
+    const text = '☠ আমার SSC Result এর ভয়ের কাউন্টডাউন দেখো! তোমারও ভয় লাগছে? 😰💀';
+    if (navigator.share) {
+      navigator.share({ title: 'SSC Result Countdown', text: text, url: url });
+    } else {
+      navigator.clipboard.writeText(url + '\n' + text)
+        .then(() => alert('Link copied! Share it with your suffering friends. 💀'))
+        .catch(() => alert('Copy this link: ' + url));
+    }
+  }
+
+  // ---- RANDOM SCREEN SHAKE ----
+  setInterval(() => {
+    if (Math.random() < 0.08) {
+      document.querySelector('.page-wrapper').style.transform = 'translateX(' + (Math.random()*6-3) + 'px)';
+      setTimeout(() => {
+        document.querySelector('.page-wrapper').style.transform = '';
+      }, 80);
+    }
+  }, 3000);
+</script>
+</body>
+</html>
